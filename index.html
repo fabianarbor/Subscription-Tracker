@@ -205,7 +205,7 @@ function renderList() {
   });
 }
 
-function render() { renderSuggestions(); renderList(); renderTotal(); }
+function render() { renderSuggestions(); renderList(); renderTotal(); updateTweetLink(); }
 
 function addPreset(p) {
   if (subs.some(s => s.id === p.id)) return;
@@ -290,6 +290,7 @@ function downloadReceipt() {
 
 document.getElementById('custom-name').addEventListener('keydown', e => { if (e.key==='Enter') addCustom(); });
 document.getElementById('custom-price').addEventListener('keydown', e => { if (e.key==='Enter') addCustom(); });
+document.getElementById('tweet-btn').addEventListener('click', e => { e.preventDefault(); window.open(buildTweetUrl(), '_blank'); });
 render();
 </script>
 </body>
