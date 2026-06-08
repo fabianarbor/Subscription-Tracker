@@ -110,7 +110,7 @@ function shareTweet() {
   else if (has('chatgpt')) bonus = 'At least ChatGPT is helping you cope with the rest of the bill.';
 
   const text = [line, bonus, `(${subList})`, '', `What's yours? → unsub.website`].filter(Boolean).join('\n');
-  window.location.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
 }
 
 const SVGS = {};
