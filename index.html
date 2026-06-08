@@ -177,7 +177,6 @@ function renderTotal() {
   const n = subs.length;
   document.getElementById('total-sub').textContent = n===0?'No subscriptions yet':n===1?'1 subscription':n+' subscriptions';
   document.getElementById('btn-row').style.display = n>0?'flex':'none';
-  if (n > 0) updateTweetLink();
 }
 
 function updateTweetLink() {
@@ -238,7 +237,7 @@ function renderList() {
   });
 }
 
-function render() { renderSuggestions(); renderList(); renderTotal(); updateTweetLink(); }
+function render() { renderSuggestions(); renderList(); renderTotal(); }
 
 function addPreset(p) {
   if (subs.some(s => s.id === p.id)) return;
