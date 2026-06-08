@@ -72,14 +72,47 @@
   <div class="empty" id="empty">Add a subscription above to get started</div>
   <div class="btn-row" id="btn-row" style="display:none">
     <button class="share-btn" onclick="downloadReceipt()">Download receipt</button>
-    <a class="tweet-btn" id="tweet-btn" href="#" target="_blank" rel="noopener">
+    <button class="tweet-btn" onclick="shareTweet()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff" xmlns="http://www.w3.org/2000/svg"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.259 5.631 5.905-5.631Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
       Share on X
-    </a>
+    </button>
   </div>
 </div>
 
 <script>
+function shareTweet() {
+  const total = getTotal();
+  const totalStr = total.toFixed(2);
+  const ids = subs.map(s => s.id);
+  const names = subs.slice(0, 3).map(s => s.name);
+  const rest = subs.length - names.length;
+  let subList = names.join(', ');
+  if (rest > 0) subList += ` +${rest} more`;
+
+  let line = '';
+  if (total >= 200) line = `${totalStr}/m on subscriptions. I am not okay.`;
+  else if (total >= 150) line = `Spent ${totalStr}/m on subscriptions. My bank account is not thriving.`;
+  else if (total >= 100) line = `${totalStr}/m on subscriptions. That's a car payment. A small one, but still.`;
+  else if (total >= 75) line = `Quietly spending ${totalStr}/m on subscriptions like it's totally normal.`;
+  else if (total >= 50) line = `${totalStr}/m on subscriptions. Not bad. Not great. Classic me.`;
+  else if (total >= 25) line = `Only ${totalStr}/m on subscriptions. Either very disciplined or missing something.`;
+  else line = `${totalStr}/m on subscriptions. Honestly impressed with myself.`;
+
+  const has = id => ids.includes(id);
+  let bonus = '';
+  if (has('spotify') && has('applemusic')) bonus = 'Two music apps. Bold strategy.';
+  else if (has('netflix') && has('disney') && has('max')) bonus = 'Netflix + Disney+ + Max. You respect chaos.';
+  else if (has('xbox') && has('psplus')) bonus = 'Xbox AND PlayStation Plus. No console loyalty whatsoever.';
+  else if (has('adobe') && has('chatgpt')) bonus = 'Adobe CC + ChatGPT. Either a creative or in full replacement anxiety mode.';
+  else if (has('dropbox') && has('icloud')) bonus = 'Dropbox and iCloud. Trusting no single cloud with your stuff.';
+  else if (has('youtube') && has('netflix')) bonus = 'Paying to avoid ads on two different platforms. Respect.';
+  else if (has('adobe')) bonus = 'Adobe CC alone justifies a salary negotiation.';
+  else if (has('chatgpt')) bonus = 'At least ChatGPT is helping you cope with the rest of the bill.';
+
+  const text = [line, bonus, `(${subList})`, '', `What's yours? → unsub.website`].filter(Boolean).join('\n');
+  window.location.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+}
+
 const SVGS = {};
 
 SVGS.spotify = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path fill="#1ed760" d="M32,0C14.3,0,0,14.34,0,32s14.34,32,32,32,32-14.34,32-32S49.66,0,32,0ZM46.68,46.17c-.57.97-1.8,1.24-2.75.66-7.53-4.59-16.98-5.62-28.14-3.09-1.07.23-2.14-.42-2.37-1.49-.23-1.07.42-2.14,1.49-2.37,12.19-2.79,22.67-1.61,31.08,3.55.95.57,1.26,1.79.69,2.74ZM50.58,37.46c-.72,1.19-2.25,1.54-3.44.85-8.6-5.28-21.71-6.81-31.88-3.75-1.34.38-2.72-.35-3.1-1.65-.38-1.33.34-2.71,1.68-3.09,11.62-3.52,26.08-1.84,35.98,4.24,1.14.69,1.49,2.22.76,3.4ZM50.93,28.36c-10.33-6.11-27.34-6.68-37.2-3.7-1.57.49-3.25-.42-3.75-1.99-.5-1.57.42-3.25,1.99-3.75,11.31-3.44,30.12-2.75,41.98,4.28,1.41.84,1.87,2.68,1.03,4.09-.77,1.46-2.64,1.92-4.05,1.07Z"/></svg>`;
@@ -205,7 +238,7 @@ function renderList() {
   });
 }
 
-function render() { renderSuggestions(); renderList(); renderTotal(); }
+function render() { renderSuggestions(); renderList(); renderTotal(); updateTweetLink(); }
 
 function addPreset(p) {
   if (subs.some(s => s.id === p.id)) return;
