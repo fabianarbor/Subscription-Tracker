@@ -4,9 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Subscriptions</title>
+<script defer src="https://cdn.vercel-insights.com/v1/script.js" data-endpoint="/_vercel/insights"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; color: #000; min-height: 100vh; overflow-y: scroll; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; color: #000; min-height: 100vh; overflow-y: scroll; overflow-x: hidden; }
   .wrap { max-width: 480px; margin: 0 auto; padding: 96px 24px 80px; text-align: center; }
   .header { margin-bottom: 40px; }
   .total { font-size: 52px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; }
@@ -119,17 +120,12 @@ function getTotal() { return subs.reduce((s, x) => s + x.price, 0); }
 
 function animateTotal(target) {
   if (animFrame) cancelAnimationFrame(animFrame);
-  const start = displayedTotal;
-  const diff = target - start;
-  const dur = 500;
-  const t0 = performance.now();
+  const start = displayedTotal, diff = target - start, dur = 500, t0 = performance.now();
   function step(now) {
-    const p = Math.min((now - t0) / dur, 1);
-    const ease = 1 - Math.pow(1 - p, 3);
-    displayedTotal = start + diff * ease;
-    document.getElementById('total').textContent = '$' + displayedTotal.toFixed(2);
-    if (p < 1) animFrame = requestAnimationFrame(step);
-    else displayedTotal = target;
+    const p = Math.min((now-t0)/dur,1), ease = 1-Math.pow(1-p,3);
+    displayedTotal = start + diff*ease;
+    document.getElementById('total').textContent = '$'+displayedTotal.toFixed(2);
+    if (p<1) animFrame = requestAnimationFrame(step); else displayedTotal = target;
   }
   animFrame = requestAnimationFrame(step);
 }
@@ -137,8 +133,8 @@ function animateTotal(target) {
 function renderTotal() {
   animateTotal(getTotal());
   const n = subs.length;
-  document.getElementById('total-sub').textContent = n === 0 ? 'No subscriptions yet' : n === 1 ? '1 subscription' : n + ' subscriptions';
-  document.getElementById('share-btn').style.display = n > 0 ? 'block' : 'none';
+  document.getElementById('total-sub').textContent = n===0?'No subscriptions yet':n===1?'1 subscription':n+' subscriptions';
+  document.getElementById('share-btn').style.display = n>0?'block':'none';
 }
 
 function getLogo(id, size=24, customLetter=null) {
@@ -214,109 +210,57 @@ function addCustom() {
 }
 
 function downloadReceipt() {
-  const MAX = 8;
-  const shown = subs.slice(0, MAX);
-  const extra = subs.length - MAX;
-  const total = getTotal();
-
-  const scale = 3;
-  const W = 400;
-  const rowH = 48;
-  const topPad = 64;
-  const bottomPad = 64;
-  const dividerMargin = 24;
-  const contentH = topPad + 100 + dividerMargin * 2 + shown.length * rowH + (extra > 0 ? 32 : 0) + dividerMargin * 2 + 40 + bottomPad;
-  const H = Math.max(contentH, Math.round(W * 5 / 4));
-  const vOffset = (H - contentH) / 2;
-
+  const MAX = 8, shown = subs.slice(0, MAX), extra = subs.length - MAX, total = getTotal();
+  const scale = 3, W = 400, rowH = 48, topPad = 64, bottomPad = 64, dm = 24;
+  const contentH = topPad + 100 + dm*2 + shown.length*rowH + (extra>0?32:0) + dm*2 + 40 + bottomPad;
+  const H = Math.max(contentH, Math.round(W*5/4));
+  const vOff = (H - contentH) / 2;
   const canvas = document.createElement('canvas');
-  canvas.width = W * scale;
-  canvas.height = H * scale;
+  canvas.width = W*scale; canvas.height = H*scale;
   const ctx = canvas.getContext('2d');
   ctx.scale(scale, scale);
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
+  let y = vOff + topPad;
 
-  let y = vOffset + topPad;
+  ctx.fillStyle = '#aaa'; ctx.font = '500 11px -apple-system, sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('MONTHLY SPEND', W/2, y); y += 20;
 
-  // Label
-  ctx.fillStyle = '#aaaaaa';
-  ctx.font = '500 11px -apple-system, BlinkMacSystemFont, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('MONTHLY SPEND', W / 2, y);
-  y += 20;
-
-  // Total + /m on same line
   const totalText = '$' + total.toFixed(2);
-  ctx.font = '600 48px -apple-system, BlinkMacSystemFont, sans-serif';
-  const totalW = ctx.measureText(totalText).width;
-  ctx.font = '500 20px -apple-system, BlinkMacSystemFont, sans-serif';
-  const perW = ctx.measureText('/m').width;
-  const gap = 8;
-  const blockW = totalW + gap + perW;
-  const startX = (W - blockW) / 2;
+  ctx.font = '600 48px -apple-system, sans-serif';
+  const tw = ctx.measureText(totalText).width;
+  ctx.font = '500 20px -apple-system, sans-serif';
+  const pw = ctx.measureText('/m').width;
+  const sx = (W - (tw + 8 + pw)) / 2;
+  ctx.font = '600 48px -apple-system, sans-serif'; ctx.fillStyle = '#000'; ctx.textAlign = 'left';
+  ctx.fillText(totalText, sx, y+48);
+  ctx.font = '500 20px -apple-system, sans-serif'; ctx.fillStyle = '#aaa';
+  ctx.fillText('/m', sx+tw+8, y+48); y += 68;
 
-  ctx.font = '600 48px -apple-system, BlinkMacSystemFont, sans-serif';
-  ctx.fillStyle = '#000000';
-  ctx.textAlign = 'left';
-  ctx.fillText(totalText, startX, y + 48);
-  ctx.font = '500 20px -apple-system, BlinkMacSystemFont, sans-serif';
-  ctx.fillStyle = '#aaaaaa';
-  ctx.fillText('/m', startX + totalW + gap, y + 48);
-  y += 68;
+  ctx.fillStyle = '#f0f0f0'; ctx.fillRect(32, y, W-64, 1); y += dm;
 
-  // Top divider
-  ctx.fillStyle = '#f0f0f0';
-  ctx.fillRect(32, y, W - 64, 1);
-  y += dividerMargin;
-
-  // Rows
   shown.forEach(s => {
     const preset = PRESETS.find(p => p.id === s.id);
     const color = COLORS[s.id] || '#888';
     const letter = s.letter || (preset ? preset.name[0] : s.name[0]).toUpperCase();
-    const cy = y + rowH / 2;
-
-    ctx.beginPath();
-    ctx.arc(W / 2 - 110, cy, 14, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
-
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '600 12px -apple-system, BlinkMacSystemFont, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(letter, W / 2 - 110, cy + 4);
-
-    ctx.fillStyle = '#000000';
-    ctx.font = '500 14px -apple-system, BlinkMacSystemFont, sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText(s.name, W / 2 - 88, cy + 5);
-
-    ctx.fillStyle = '#555555';
-    ctx.font = '400 14px -apple-system, BlinkMacSystemFont, sans-serif';
-    ctx.textAlign = 'right';
-    ctx.fillText('$' + s.price.toFixed(2), W - 32, cy + 5);
-
+    const cy = y + rowH/2;
+    const rowX = 32;
+    ctx.beginPath(); ctx.arc(rowX+14, cy, 14, 0, Math.PI*2); ctx.fillStyle = color; ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = '600 12px -apple-system, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(letter, rowX+14, cy+4);
+    ctx.fillStyle = '#000'; ctx.font = '500 14px -apple-system, sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText(s.name, rowX+36, cy+5);
+    ctx.fillStyle = '#555'; ctx.font = '400 14px -apple-system, sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText('$'+s.price.toFixed(2), W-32, cy+5);
     y += rowH;
   });
 
   if (extra > 0) {
-    ctx.fillStyle = '#aaaaaa';
-    ctx.font = '400 13px -apple-system, BlinkMacSystemFont, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('+' + extra + ' more', W / 2, y + 16);
-    y += 32;
+    ctx.fillStyle = '#aaa'; ctx.font = '400 13px -apple-system, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('+'+extra+' more', W/2, y+16); y += 32;
   }
-
-  y += dividerMargin;
-  ctx.fillStyle = '#f0f0f0';
-  ctx.fillRect(32, y, W - 64, 1);
-  y += dividerMargin;
-
-  ctx.fillStyle = '#000000';
-  ctx.font = '500 12px -apple-system, BlinkMacSystemFont, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('unsub.website', W / 2, y + 16);
+  y += dm; ctx.fillStyle = '#f0f0f0'; ctx.fillRect(32, y, W-64, 1); y += dm;
+  ctx.fillStyle = '#000'; ctx.font = '500 12px -apple-system, sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('unsub.website', W/2, y+16);
 
   const link = document.createElement('a');
   link.download = 'unsub-receipt.png';
@@ -324,9 +268,8 @@ function downloadReceipt() {
   link.click();
 }
 
-document.getElementById('custom-name').addEventListener('keydown', e => { if (e.key === 'Enter') addCustom(); });
-document.getElementById('custom-price').addEventListener('keydown', e => { if (e.key === 'Enter') addCustom(); });
-
+document.getElementById('custom-name').addEventListener('keydown', e => { if (e.key==='Enter') addCustom(); });
+document.getElementById('custom-price').addEventListener('keydown', e => { if (e.key==='Enter') addCustom(); });
 render();
 </script>
 </body>
