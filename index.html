@@ -10,7 +10,7 @@
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; color: #000; min-height: 100vh; overflow-y: scroll; overflow-x: hidden; }
   .wrap { max-width: 480px; margin: 0 auto; padding: 96px 24px 80px; text-align: center; }
   .header { margin-bottom: 40px; }
-  .total { font-size: 52px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; }
+  .total { font-size: 52px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
   .total-sub { font-size: 14px; color: #999; margin-top: 6px; }
   .section-label { font-size: 12px; font-weight: 500; color: #aaa; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
   .suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 36px; justify-content: center; }
@@ -40,8 +40,11 @@
   .remove-btn { background: none; border: none; cursor: pointer; color: #ccc; font-size: 18px; padding: 4px; line-height: 1; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .remove-btn:hover { color: #000; background: #f5f5f5; }
   .empty { text-align: center; padding: 40px 0; color: #ccc; font-size: 14px; }
-  .share-btn { display: block; width: 100%; margin-top: 16px; padding: 12px; background: #000; color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; text-align: center; }
+  .btn-row { display: flex; gap: 8px; margin-top: 16px; }
+  .share-btn { flex: 1; padding: 12px; background: #000; color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; text-align: center; }
   .share-btn:hover { background: #333; }
+  .tweet-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 12px; background: #000; color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; text-decoration: none; }
+  .tweet-btn:hover { background: #333; }
 </style>
 </head>
 <body>
@@ -67,7 +70,13 @@
   <div style="margin-bottom:28px"></div>
   <div class="list" id="list"></div>
   <div class="empty" id="empty">Add a subscription above to get started</div>
-  <button class="share-btn" id="share-btn" onclick="downloadReceipt()" style="display:none">Download receipt</button>
+  <div class="btn-row" id="btn-row" style="display:none">
+    <button class="share-btn" onclick="downloadReceipt()">Download receipt</button>
+    <a class="tweet-btn" id="tweet-btn" href="#" target="_blank" rel="noopener">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff" xmlns="http://www.w3.org/2000/svg"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.259 5.631 5.905-5.631Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      Share on X
+    </a>
+  </div>
 </div>
 
 <script>
@@ -134,7 +143,18 @@ function renderTotal() {
   animateTotal(getTotal());
   const n = subs.length;
   document.getElementById('total-sub').textContent = n===0?'No subscriptions yet':n===1?'1 subscription':n+' subscriptions';
-  document.getElementById('share-btn').style.display = n>0?'block':'none';
+  document.getElementById('btn-row').style.display = n>0?'flex':'none';
+  if (n > 0) updateTweetLink();
+}
+
+function updateTweetLink() {
+  const total = getTotal().toFixed(2);
+  const top = subs.slice(0, 3).map(s => s.name);
+  const rest = subs.length - top.length;
+  let subList = top.join(', ');
+  if (rest > 0) subList += ` +${rest} more`;
+  const text = `I'm spending ${total}/m on subscriptions 💸\n(${subList})\n\nWhat's yours? → unsub.website`;
+  document.getElementById('tweet-btn').href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
 }
 
 function getLogo(id, size=24, customLetter=null) {
